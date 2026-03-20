@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- ── Character encoding & viewport ─────────────────────────────────── -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- ── SEO & Social meta ─────────────────────────────────────────────── -->
+  <meta name="description" content="CodeFlip – a flashcard quiz app for learning coding fundamentals." />
+  <meta name="theme-color" content="#0b0e16" />
+
+  <title> DevDeck — Coding Flashcards</title>
+
+  <!-- ── Google Fonts ──────────────────────────────────────────────────── -->
+  <!--
+    "Syne"       → geometric display font for headings & brand (bold, technical feel)
+    "Fira Code"  → monospaced font for code snippets, answers, and accents
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Fira+Code:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- ── Stylesheet ────────────────────────────────────────────────────── -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <!-- ============================================================
+    DECORATIVE BACKGROUND ELEMENTS
+    These are pure visual elements — no semantic meaning.
+    They are absolutely positioned via CSS and animated via JS
+    only for the subtle ambient glow effect.
+  ============================================================ -->
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="blob blob--a" aria-hidden="true"></div>
+  <div class="blob blob--b" aria-hidden="true"></div>
+  <div class="blob blob--c" aria-hidden="true"></div>
+
+  <!-- ============================================================
+    MAIN APPLICATION WRAPPER
+    id="app" is the root container targeted by app.js.
+    role="main" communicates the primary content to screen readers.
+  ============================================================ -->
+  <main id="app" role="main">
+
+    <!-- ──────────────────────────────────────────────────────────
+      SCREEN: SIGN-UP
+      First screen a new user sees.
+      Collects: username (2–20 chars) + 4-digit passkey.
+      JS ID refs:  #screen-signup  #signup-username  #signup-passkey
+                   #signup-msg     #btn-signup
+    ────────────────────────────────────────────────────────── -->
+    <section id="screen-signup" class="screen screen--active" aria-label="Sign up screen">
+      <div class="card panel">
+
+        <!-- Brand -->
+        <div class="brand" aria-label="CodeFlip logo">
+          <span class="brand__code">Code</span><span class="brand__flip">Flip</span>
+        </div>
+        <p class="brand__tagline">// learn to code, one card at a time</p>
+
+        <!-- Heading -->
+        <h1 class="panel__title">Create Account</h1>
+        <p class="panel__subtitle">Choose a username &amp; a 4-digit passkey to begin.</p>
+
+        <!-- Inline feedback message (error / success) -->
+        <div id="signup-msg" class="alert" role="alert" aria-live="polite"></div>
+
+        <!-- Form fields -->
+        <div class="form-group">
+          <label class="form-label" for="signup-username">Username</label>
+          <input
+            id="signup-username"
+            class="form-input"
+            type="text"
+            placeholder="e.g. dev_ninja"
+            maxlength="20"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="signup-passkey">4-Digit Passkey</label>
+          <input
+            id="signup-passkey"
+            class="form-input"
+            type="password"
+            placeholder="• • • •"
+            maxlength="4"
+            inputmode="numeric"
+            autocomplete="new-password"
+          />
+        </div>
+
+        <button id="btn-signup" class="btn btn--primary" type="button">
+          Create Account <span class="btn__arrow">→</span>
+        </button>
+
+        <!-- Toggle to login screen -->
+        <p class="screen-toggle">
+          Already have an account?
+          <button class="screen-toggle__btn" data-goto="screen-login" type="button">Log in</button>
+        </p>
+
+      </div>
+    </section>
+
+
+    <!-- ──────────────────────────────────────────────────────────
+      SCREEN: LOGIN
+      Returning user authentication screen.
+      JS ID refs:  #screen-login  #login-username  #login-passkey
+                   #login-msg     #btn-login
+    ────────────────────────────────────────────────────────── -->
+    <section id="screen-login" class="screen" aria-label="Login screen">
+      <div class="card panel">
+
+        <div class="brand" aria-label="CodeFlip logo">
+          <span class="brand__code">Code</span><span class="brand__flip">Flip</span>
+        </div>
+        <p class="brand__tagline">// welcome back, developer</p>
+
+        <h1 class="panel__title">Log In</h1>
+        <p class="panel__subtitle">Enter your credentials to continue.</p>
+
+        <div id="login-msg" class="alert" role="alert" aria-live="polite"></div>
+
+        <div class="form-group">
+          <label class="form-label" for="login-username">Username</label>
+          <input
+            id="login-username"
+            class="form-input"
+            type="text"
+            placeholder="your username"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="login-passkey">Passkey</label>
+          <input
+            id="login-passkey"
+            class="form-input"
+            type="password"
+            placeholder="• • • •"
+            maxlength="4"
+            inputmode="numeric"
+            autocomplete="current-password"
+          />
+        </div>
+
+        <button id="btn-login" class="btn btn--primary" type="button">
+          Log In <span class="btn__arrow">→</span>
+        </button>
+
+        <p class="screen-toggle">
+          No account yet?
+          <button class="screen-toggle__btn" data-goto="screen-signup" type="button">Sign up</button>
+        </p>
+
+      </div>
+    </section>
+
+
+    <!-- ──────────────────────────────────────────────────────────
+      SCREEN: WELCOME
+      Post-login landing page. Greets the user by name before
+      the quiz begins.
+      JS ID refs:  #screen-welcome  #welcome-username
+    ────────────────────────────────────────────────────────── -->
+    <section id="screen-welcome" class="screen" aria-label="Welcome screen">
+      <div class="card panel panel--wide">
+
+        <div class="welcome-hero">
+          <p class="welcome-hero__greeting">Hello, developer 👋</p>
+          <!-- Filled by JS with the logged-in username -->
+          <h1 id="welcome-username" class="welcome-hero__name">User</h1>
+          <p class="welcome-hero__tagline">Ready to test your coding knowledge?</p>
+        </div>
+
+        <!-- Brief rules overview -->
+        <div class="rules-grid">
+          <div class="rule-item">
+            <span class="rule-item__icon">🃏</span>
+            <p class="rule-item__text"><strong>10 cards</strong> per round</p>
+          </div>
+          <div class="rule-item">
+            <span class="rule-item__icon">⌨️</span>
+            <p class="rule-item__text"><strong>Type</strong> your answer</p>
+          </div>
+          <div class="rule-item">
+            <span class="rule-item__icon">🔄</span>
+            <p class="rule-item__text">Wrong? See the answer &amp; <strong>keep going</strong></p>
+          </div>
+          <div class="rule-item">
+            <span class="rule-item__icon">📈</span>
+            <p class="rule-item__text">Track your <strong>score</strong> live</p>
+          </div>
+        </div>
+
+        <button id="btn-start" class="btn btn--primary" type="button">
+          Start Flipping <span class="btn__arrow">→</span>
+        </button>
+
+        <button id="btn-welcome-logout" class="btn btn--ghost" type="button">Log Out</button>
+
+      </div>
+    </section>
+
+
+    <!-- ──────────────────────────────────────────────────────────
+      SCREEN: GAME
+      The main quiz interface. Contains:
+        - Progress bar
+        - Score chips
+        - The 3-D flip card (question front / answer back)
+        - Answer input + submit
+        - Feedback message
+        - Next card button
+      JS ID refs:  #screen-game  #progress-label  #progress-pct
+                   #progress-fill  #score-correct  #score-wrong
+                   #card-category  #card-question  #card-answer
+                   #flash-card  #user-answer  #feedback  #btn-next
+    ────────────────────────────────────────────────────────── -->
+    <section id="screen-game" class="screen" aria-label="Quiz game screen">
+
+      <!-- Progress bar -->
+      <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="progress-bar__meta">
+          <span id="progress-label" class="progress-bar__label">Card 1 of 10</span>
+          <span id="progress-pct"   class="progress-bar__pct">0%</span>
+        </div>
+        <div class="progress-bar__track">
+          <div id="progress-fill" class="progress-bar__fill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Score counters -->
+      <div class="score-chips" aria-label="Score">
+        <div class="chip chip--correct" aria-label="Correct answers">
+          <span id="score-correct" class="chip__value">0</span>
+          <span class="chip__label">Correct</span>
+        </div>
+        <div class="chip chip--wrong" aria-label="Wrong answers">
+          <span id="score-wrong" class="chip__value">0</span>
+          <span class="chip__label">Wrong</span>
+        </div>
+      </div>
+
+      <!-- ── 3-D Flip Card ───────────────────────────────────────
+        The scene provides perspective depth.
+        The inner .card-3d is what actually rotates.
+        Clicking toggles the CSS class "card-3d--flipped".
+      ──────────────────────────────────────────────────────── -->
+      <div
+        class="card-scene"
+        id="card-scene"
+        role="button"
+        tabindex="0"
+        aria-label="Flashcard — click to flip"
+      >
+        <div class="card-3d" id="flash-card">
+
+          <!-- FRONT: question side -->
+          <div class="card-face card-face--front">
+            <span id="card-category" class="card-face__category">Loading…</span>
+            <p   id="card-question"  class="card-face__question">Please wait</p>
+            <span class="card-face__hint">↩ tap to flip &amp; reveal answer</span>
+          </div>
+
+          <!-- BACK: answer side (rotated 180° by default, shown on flip) -->
+          <div class="card-face card-face--back">
+            <span class="card-face__answer-label">✓ Correct Answer</span>
+            <pre id="card-answer" class="card-face__answer"></pre>
+          </div>
+
+        </div>
+      </div>
+      <!-- ── End Flip Card ────────────────────────────────────── -->
+
+      <!-- Answer input row -->
+      <div class="answer-row">
+        <input
+          id="user-answer"
+          class="answer-row__input"
+          type="text"
+          placeholder="Type your answer and press Enter…"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Your answer"
+        />
+        <button id="btn-submit" class="answer-row__submit" type="button" aria-label="Submit answer">
+          Submit
+        </button>
+      </div>
+
+      <!-- Feedback message (correct / wrong) -->
+      <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+
+      <!-- Next card button (hidden until answer submitted) -->
+      <button id="btn-next" class="btn btn--primary" type="button" hidden>
+        Next Card <span class="btn__arrow">→</span>
+      </button>
+
+    </section>
+
+
+    <!-- ──────────────────────────────────────────────────────────
+      SCREEN: RESULTS
+      Shown after all 10 cards have been played.
+      Displays accuracy %, correct/wrong totals, and CTAs.
+      JS ID refs:  #screen-results  #results-emoji  #results-title
+                   #results-sub  #results-pct  #result-correct
+                   #result-wrong  #btn-replay  #btn-results-home
+                   #btn-results-logout
+    ────────────────────────────────────────────────────────── -->
+    <section id="screen-results" class="screen" aria-label="Results screen">
+      <div class="card panel panel--wide">
+
+        <div class="results-header">
+          <span id="results-emoji" class="results-header__emoji" aria-hidden="true">🏆</span>
+          <h1 id="results-title" class="results-header__title">Round Complete!</h1>
+          <p  id="results-sub"   class="results-header__sub">Here's how you did</p>
+        </div>
+
+        <!-- Big accuracy score -->
+        <div class="results-score" aria-label="Accuracy score">
+          <span id="results-pct" class="results-score__pct">0%</span>
+          <span class="results-score__label">accuracy this session</span>
+        </div>
+
+        <!-- Correct vs Wrong breakdown -->
+        <div class="results-breakdown" aria-label="Score breakdown">
+          <div class="breakdown-item breakdown-item--correct">
+            <span id="result-correct" class="breakdown-item__val">0</span>
+            <span class="breakdown-item__lbl">Correct</span>
+          </div>
+          <div class="breakdown-item breakdown-item--wrong">
+            <span id="result-wrong" class="breakdown-item__val">0</span>
+            <span class="breakdown-item__lbl">Wrong</span>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <button id="btn-replay"        class="btn btn--primary" type="button">Play Again ↺</button>
+        <button id="btn-results-home"  class="btn btn--ghost"   type="button">Back to Home</button>
+        <button id="btn-results-logout" class="btn btn--text"   type="button">Log Out</button>
+
+      </div>
+    </section>
+
+  </main><!-- end #app -->
+
+  <!-- ── JavaScript (loaded at end of body for performance) ─────────────── -->
+  <script src="app.js"></script>
+
+</body>
+</html>

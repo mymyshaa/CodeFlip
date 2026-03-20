@@ -1,0 +1,1036 @@
+/*
+ * =============================================================================
+ * CodeFlip — Coding Flashcard App
+ * =============================================================================
+ * Author  : Your Name
+ * Version : 1.0.0
+ * File    : styles.css
+ * Role    : All visual styles, layout, animations, and responsive rules
+ * -----------------------------------------------------------------------------
+ * TABLE OF CONTENTS
+ *   1.  Design Tokens (CSS Custom Properties)
+ *   2.  Reset & Base Styles
+ *   3.  Decorative Background Elements
+ *   4.  Screen System (navigation/visibility)
+ *   5.  Card / Panel Component
+ *   6.  Brand / Logo
+ *   7.  Typography (headings, paragraphs)
+ *   8.  Form Components (inputs, labels)
+ *   9.  Button Components
+ *  10.  Alert / Message Component
+ *  11.  Welcome Screen
+ *  12.  Progress Bar
+ *  13.  Score Chips
+ *  14.  Flashcard (3-D flip card)
+ *  15.  Answer Row
+ *  16.  Feedback Banner
+ *  17.  Results Screen
+ *  18.  Utility Classes
+ *  19.  Animations & Keyframes
+ *  20.  Responsive / Media Queries
+ * =============================================================================
+ */
+
+
+/* =============================================================================
+   1. DESIGN TOKENS
+   All colours, fonts, spacing, and radii are defined as CSS custom properties.
+   Changing a value here cascades consistently through the entire UI.
+============================================================================= */
+:root {
+  /* ── Colour Palette ──────────────────────────────────────────────────── */
+  --clr-bg:        #0b0e16;          /* deepest background                   */
+  --clr-surface:   #111520;          /* card / panel surface                 */
+  --clr-surface-2: #181d2e;          /* slightly lighter panels / inputs     */
+  --clr-border:    #252b3b;          /* subtle borders                       */
+
+  --clr-accent:    #00e5a0;          /* primary mint-green accent            */
+  --clr-accent-dim:rgba(0,229,160,.12); /* translucent accent for glows      */
+  --clr-blue:      #4f7cff;          /* secondary blue                       */
+  --clr-blue-dim:  rgba(79,124,255,.12);
+  --clr-danger:    #ff4f6d;          /* red for wrong answers / errors       */
+  --clr-danger-dim:rgba(255,79,109,.12);
+
+  --clr-text:      #e4eaf5;          /* primary readable text                */
+  --clr-muted:     #5c6580;          /* de-emphasised / placeholder text     */
+
+  /* ── Typography ─────────────────────────────────────────────────────── */
+  --font-display:  'Syne', sans-serif;      /* headings, brand                */
+  --font-code:     'Fira Code', monospace;  /* code, labels, answers          */
+
+  /* ── Sizing Scale ───────────────────────────────────────────────────── */
+  --radius-sm:  8px;
+  --radius-md:  14px;
+  --radius-lg:  22px;
+  --radius-xl:  32px;
+
+  /* ── Shadows ─────────────────────────────────────────────────────────── */
+  --shadow-card:  0 12px 48px rgba(0,0,0,.7);
+  --shadow-glow:  0 0 40px rgba(0,229,160,.15);
+
+  /* ── Transitions ─────────────────────────────────────────────────────── */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast:   0.15s ease;
+  --transition-normal: 0.3s var(--ease-out-expo);
+  --transition-slow:   0.6s var(--ease-out-expo);
+}
+
+
+/* =============================================================================
+   2. RESET & BASE STYLES
+   Minimal, predictable reset so the browser doesn't add surprises.
+============================================================================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* Prevents layout shift when a scrollbar appears */
+  scrollbar-gutter: stable;
+}
+
+body {
+  background-color: var(--clr-bg);
+  color: var(--clr-text);
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100vh;
+
+  /* Centre content both axes */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow-x: hidden;
+}
+
+/* Inherit font in form elements (browsers don't do this by default) */
+button,
+input,
+textarea {
+  font-family: inherit;
+}
+
+/* Remove default list styling */
+ul,
+ol {
+  list-style: none;
+}
+
+/* Better image defaults */
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Focus ring — improves keyboard accessibility */
+:focus-visible {
+  outline: 2px solid var(--clr-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+
+/* =============================================================================
+   3. DECORATIVE BACKGROUND ELEMENTS
+   .bg-grid   → subtle dot pattern on the page background
+   .blob      → blurred radial gradients creating ambient glow effect
+   These are purely visual; they use aria-hidden="true" in the HTML.
+============================================================================= */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  /* Dot grid using radial-gradient as a background image tile */
+  background-image: radial-gradient(circle, #1c2238 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.6;
+}
+
+/* Shared blob styles */
+.blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(110px);
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: 0;
+  animation: blobDrift 18s ease-in-out infinite alternate;
+  will-change: transform; /* hint for browser GPU compositing */
+}
+
+.blob--a {
+  width: 560px;
+  height: 560px;
+  background: var(--clr-accent);
+  top: -180px;
+  left: -160px;
+  animation-duration: 18s;
+  animation-delay: 0s;
+}
+
+.blob--b {
+  width: 420px;
+  height: 420px;
+  background: var(--clr-blue);
+  bottom: -120px;
+  right: -100px;
+  animation-duration: 22s;
+  animation-delay: -8s;
+}
+
+.blob--c {
+  width: 300px;
+  height: 300px;
+  background: var(--clr-danger);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.07;
+  animation-duration: 28s;
+  animation-delay: -14s;
+}
+
+
+/* =============================================================================
+   4. SCREEN SYSTEM
+   The app is divided into named <section> screens.
+   Only one is visible at a time. JavaScript adds / removes .screen--active.
+   The animation plays when a screen becomes active.
+============================================================================= */
+#app {
+  /* Sits above the background blobs */
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 560px;
+  padding: 24px 16px;
+}
+
+/* All screens are hidden by default */
+.screen {
+  display: none;
+}
+
+/* The active screen fades + slides up into view */
+.screen--active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: screenReveal 0.5s var(--ease-out-expo) both;
+}
+
+
+/* =============================================================================
+   5. CARD / PANEL COMPONENT
+   The rounded glass-like container used on auth, welcome, and results screens.
+============================================================================= */
+.panel {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-xl);
+  padding: 42px 40px;
+  width: 100%;
+  box-shadow: var(--shadow-card);
+}
+
+/* A slightly wider variant for screens with more content */
+.panel--wide {
+  padding: 40px 36px;
+}
+
+
+/* =============================================================================
+   6. BRAND / LOGO
+============================================================================= */
+.brand {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
+}
+
+/* "Code" part — muted white */
+.brand__code {
+  color: var(--clr-text);
+}
+
+/* "Flip" part — primary accent colour */
+.brand__flip {
+  color: var(--clr-accent);
+}
+
+/* Monospaced comment-style tagline below the logo */
+.brand__tagline {
+  font-family: var(--font-code);
+  font-size: 0.75rem;
+  color: var(--clr-muted);
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+
+/* =============================================================================
+   7. TYPOGRAPHY
+============================================================================= */
+.panel__title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.panel__subtitle {
+  font-size: 0.85rem;
+  color: var(--clr-muted);
+  margin-bottom: 26px;
+  line-height: 1.5;
+}
+
+
+/* =============================================================================
+   8. FORM COMPONENTS
+   .form-group  → wraps label + input
+   .form-label  → uppercase monospaced label
+   .form-input  → styled text / password field
+============================================================================= */
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-label {
+  display: block;
+  font-family: var(--font-code);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--clr-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.form-input {
+  display: block;
+  width: 100%;
+  background: var(--clr-surface-2);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  color: var(--clr-text);
+  font-family: var(--font-code);
+  font-size: 0.95rem;
+  padding: 14px 16px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  outline: none;
+}
+
+.form-input::placeholder {
+  color: var(--clr-muted);
+  opacity: 0.7;
+}
+
+.form-input:focus {
+  border-color: var(--clr-accent);
+  box-shadow: 0 0 0 3px var(--clr-accent-dim);
+}
+
+/* Remove browser number-input spinners */
+.form-input::-webkit-outer-spin-button,
+.form-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+
+/* =============================================================================
+   9. BUTTON COMPONENTS
+   Three variants:
+     .btn--primary  → filled accent (CTA)
+     .btn--ghost    → outlined blue (secondary action)
+     .btn--text     → no background (tertiary / logout)
+============================================================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px 24px;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-code);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  transition:
+    opacity      var(--transition-fast),
+    transform    var(--transition-fast),
+    box-shadow   var(--transition-fast);
+  margin-top: 10px;
+}
+
+.btn:hover {
+  opacity: 0.85;
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(0px);
+}
+
+/* ── Primary ── */
+.btn--primary {
+  background: var(--clr-accent);
+  color: #06100c;                    /* very dark text on light bg for contrast */
+  box-shadow: 0 4px 24px rgba(0,229,160,0.28);
+}
+
+.btn--primary:hover {
+  box-shadow: 0 6px 32px rgba(0,229,160,0.4);
+}
+
+/* ── Ghost (outlined) ── */
+.btn--ghost {
+  background: transparent;
+  color: var(--clr-blue);
+  border: 1px solid var(--clr-blue);
+}
+
+/* ── Text-only (logout / tertiary) ── */
+.btn--text {
+  background: transparent;
+  color: var(--clr-muted);
+  font-size: 0.8rem;
+  padding: 10px 24px;
+  margin-top: 4px;
+}
+
+.btn--text:hover {
+  color: var(--clr-danger);
+  opacity: 1;
+}
+
+/* Small animated arrow inside buttons */
+.btn__arrow {
+  display: inline-block;
+  transition: transform var(--transition-fast);
+}
+
+.btn:hover .btn__arrow {
+  transform: translateX(4px);
+}
+
+
+/* =============================================================================
+  10. ALERT / MESSAGE COMPONENT
+  Used for inline validation and success messages on the auth screens.
+  State classes (.alert--error, .alert--success) are toggled by JS.
+============================================================================= */
+.alert {
+  display: none;              /* hidden until JS adds a state class */
+  font-family: var(--font-code);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  animation: alertPop 0.3s var(--ease-out-expo) both;
+}
+
+.alert--error {
+  display: block;
+  background: var(--clr-danger-dim);
+  color: var(--clr-danger);
+  border: 1px solid rgba(255,79,109,.3);
+}
+
+.alert--success {
+  display: block;
+  background: var(--clr-accent-dim);
+  color: var(--clr-accent);
+  border: 1px solid rgba(0,229,160,.3);
+}
+
+/* Toggle link below auth forms */
+.screen-toggle {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.82rem;
+  color: var(--clr-muted);
+}
+
+.screen-toggle__btn {
+  background: none;
+  border: none;
+  color: var(--clr-accent);
+  cursor: pointer;
+  font-family: var(--font-code);
+  font-size: 0.82rem;
+  text-decoration: underline;
+  padding: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.screen-toggle__btn:hover {
+  opacity: 0.75;
+}
+
+
+/* =============================================================================
+  11. WELCOME SCREEN
+============================================================================= */
+.welcome-hero {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.welcome-hero__greeting {
+  font-family: var(--font-code);
+  font-size: 0.85rem;
+  color: var(--clr-muted);
+  margin-bottom: 4px;
+}
+
+.welcome-hero__name {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--clr-accent);
+  line-height: 1.1;
+  margin-bottom: 8px;
+  /* Prevent very long names from overflowing */
+  overflow-wrap: break-word;
+}
+
+.welcome-hero__tagline {
+  font-size: 0.88rem;
+  color: var(--clr-muted);
+}
+
+/* 2×2 grid of rule summary cards */
+.rules-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.rule-item {
+  background: var(--clr-surface-2);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  text-align: center;
+}
+
+.rule-item__icon {
+  font-size: 1.4rem;
+  margin-bottom: 6px;
+}
+
+.rule-item__text {
+  font-size: 0.8rem;
+  color: var(--clr-muted);
+  line-height: 1.4;
+}
+
+.rule-item__text strong {
+  color: var(--clr-text);
+}
+
+
+/* =============================================================================
+  12. PROGRESS BAR
+  Shown at the top of the game screen. Width of the fill is set inline by JS.
+============================================================================= */
+.progress-bar {
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+.progress-bar__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.progress-bar__label,
+.progress-bar__pct {
+  font-family: var(--font-code);
+  font-size: 0.73rem;
+  color: var(--clr-muted);
+}
+
+.progress-bar__track {
+  height: 3px;
+  background: var(--clr-surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  border-radius: 3px;
+  /* Gradient fills left-to-right as progress increases */
+  background: linear-gradient(90deg, var(--clr-accent), var(--clr-blue));
+  transition: width 0.5s var(--ease-out-expo);
+}
+
+
+/* =============================================================================
+  13. SCORE CHIPS
+  Two small stat boxes side by side, tracking correct and wrong answers.
+============================================================================= */
+.score-chips {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 22px;
+}
+
+.chip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 10px;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+}
+
+.chip__value {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+
+.chip__label {
+  font-family: var(--font-code);
+  font-size: 0.67rem;
+  color: var(--clr-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* Colour the value based on outcome */
+.chip--correct .chip__value { color: var(--clr-accent); }
+.chip--wrong   .chip__value { color: var(--clr-danger); }
+
+
+/* =============================================================================
+  14. FLASHCARD (3-D FLIP CARD)
+  ──────────────────────────────────────────────────────────────────────────────
+  HOW IT WORKS:
+    1. .card-scene         → sets perspective depth; clicking it calls flipCard()
+    2. .card-3d            → the actual rotating element (transform-style: preserve-3d)
+    3. .card-face          → shared styles for both sides
+    4. .card-face--front   → visible by default
+    5. .card-face--back    → pre-rotated 180° (hidden until card flips)
+    6. .card-3d--flipped   → JS adds this class; rotates the 3d wrapper 180°,
+                              which hides the front and reveals the pre-rotated back
+============================================================================= */
+.card-scene {
+  width: 100%;
+  /* perspective sets the perceived distance from viewer to the card plane */
+  perspective: 1400px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  /* Ensure the card is reachable via keyboard */
+  border-radius: var(--radius-lg);
+}
+
+.card-3d {
+  width: 100%;
+  min-height: 230px;
+  position: relative;
+  /* Children share the same 3-D rendering context */
+  transform-style: preserve-3d;
+  transition: transform var(--transition-slow);
+  border-radius: var(--radius-lg);
+}
+
+/* When JS adds this class, the whole card rotates to reveal the back */
+.card-3d--flipped {
+  transform: rotateY(180deg);
+}
+
+/* Shared face styles */
+.card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  /*
+   * backface-visibility: hidden
+   * This is the key CSS property that makes the flip work.
+   * When a face rotates more than 90°, it becomes invisible.
+   * Without this, you'd see a mirror image of both faces simultaneously.
+   */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  box-shadow: var(--shadow-card);
+}
+
+/* ── Front face (question) ── */
+.card-face--front {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+}
+
+.card-face__category {
+  font-family: var(--font-code);
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--clr-blue);
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  margin-bottom: 14px;
+}
+
+.card-face__question {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.65;
+  color: var(--clr-text);
+  flex-grow: 1;
+}
+
+.card-face__hint {
+  font-family: var(--font-code);
+  font-size: 0.7rem;
+  color: var(--clr-muted);
+  margin-top: 18px;
+  opacity: 0.7;
+}
+
+/* ── Back face (answer) ── */
+.card-face--back {
+  background: linear-gradient(140deg, #0a1f16, #091424);
+  border: 1px solid rgba(0,229,160,0.22);
+  /* Pre-rotated 180° so it appears correctly when the outer wrapper flips */
+  transform: rotateY(180deg);
+}
+
+.card-face__answer-label {
+  font-family: var(--font-code);
+  font-size: 0.68rem;
+  color: var(--clr-accent);
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  margin-bottom: 14px;
+}
+
+/*
+ * <pre> preserves whitespace & newlines so multi-line answers
+ * (like code examples) render with correct line breaks.
+ */
+.card-face__answer {
+  font-family: var(--font-code);
+  font-size: 0.95rem;
+  color: var(--clr-accent);
+  line-height: 1.75;
+  white-space: pre-wrap;     /* wrap long lines; preserve intentional newlines */
+  word-break: break-word;
+}
+
+
+/* =============================================================================
+  15. ANSWER ROW
+  A side-by-side input + submit button below the flip card.
+============================================================================= */
+.answer-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.answer-row__input {
+  flex: 1;
+  background: var(--clr-surface-2);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  color: var(--clr-text);
+  font-family: var(--font-code);
+  font-size: 0.92rem;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.answer-row__input::placeholder {
+  color: var(--clr-muted);
+  opacity: 0.6;
+}
+
+.answer-row__input:focus {
+  border-color: var(--clr-accent);
+  box-shadow: 0 0 0 3px var(--clr-accent-dim);
+}
+
+/* Submit button — compact, inline */
+.answer-row__submit {
+  padding: 14px 20px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--clr-accent);
+  color: #06100c;
+  font-family: var(--font-code);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  box-shadow: 0 2px 16px rgba(0,229,160,0.2);
+}
+
+.answer-row__submit:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.answer-row__submit:active {
+  transform: translateY(0);
+}
+
+/* Disabled state (after submitting an answer) */
+.answer-row__input:disabled,
+.answer-row__submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+
+/* =============================================================================
+  16. FEEDBACK BANNER
+  Appears below the answer row after submission.
+  JS toggles between .feedback--correct and .feedback--wrong.
+============================================================================= */
+.feedback {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-code);
+  font-size: 0.82rem;
+  text-align: center;
+  margin-bottom: 12px;
+  /* Hidden by default — state classes make it visible */
+  display: none;
+}
+
+.feedback--correct {
+  display: block;
+  background: var(--clr-accent-dim);
+  color: var(--clr-accent);
+  border: 1px solid rgba(0,229,160,.3);
+  animation: feedbackPop 0.35s var(--ease-out-expo) both;
+}
+
+.feedback--wrong {
+  display: block;
+  background: var(--clr-danger-dim);
+  color: var(--clr-danger);
+  border: 1px solid rgba(255,79,109,.3);
+  animation: feedbackPop 0.35s var(--ease-out-expo) both;
+}
+
+
+/* =============================================================================
+  17. RESULTS SCREEN
+============================================================================= */
+.results-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.results-header__emoji {
+  display: block;
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.results-header__title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.results-header__sub {
+  font-size: 0.85rem;
+  color: var(--clr-muted);
+}
+
+/* Big percentage display */
+.results-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.results-score__pct {
+  font-family: var(--font-display);
+  font-size: 4rem;
+  font-weight: 800;
+  color: var(--clr-accent);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.results-score__label {
+  font-family: var(--font-code);
+  font-size: 0.75rem;
+  color: var(--clr-muted);
+}
+
+/* Correct / Wrong side-by-side boxes */
+.results-breakdown {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.breakdown-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px;
+  background: var(--clr-surface-2);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+}
+
+.breakdown-item__val {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.breakdown-item__lbl {
+  font-family: var(--font-code);
+  font-size: 0.7rem;
+  color: var(--clr-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.breakdown-item--correct .breakdown-item__val { color: var(--clr-accent); }
+.breakdown-item--wrong   .breakdown-item__val { color: var(--clr-danger); }
+
+
+/* =============================================================================
+  18. UTILITY CLASSES
+  Small, single-purpose helpers.
+============================================================================= */
+.sr-only {
+  /* Visually hidden but available to screen readers */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.text-center { text-align: center; }
+.text-muted  { color: var(--clr-muted); }
+
+
+/* =============================================================================
+  19. ANIMATIONS & KEYFRAMES
+============================================================================= */
+
+/* Screen entrance — fades in and slides up */
+@keyframes screenReveal {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Alert banner pop-in */
+@keyframes alertPop {
+  from {
+    opacity: 0;
+    transform: scaleY(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+/* Feedback banner pop-in */
+@keyframes feedbackPop {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Ambient blob drift — subtle infinite float */
+@keyframes blobDrift {
+  from { transform: translate(0, 0) scale(1);       }
+  to   { transform: translate(30px, 50px) scale(1.08); }
+}
+
+
+/* =============================================================================
+  20. RESPONSIVE / MEDIA QUERIES
+  Mobile-first: base styles work on small screens, this block adjusts larger ones.
+============================================================================= */
+
+/* Small phones (< 380px) — tighten padding */
+@media (max-width: 380px) {
+  .panel {
+    padding: 28px 20px;
+  }
+
+  .card-face {
+    padding: 22px 18px;
+  }
+
+  .rules-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tablets and up (≥ 600px) — slightly more breathing room */
+@media (min-width: 600px) {
+  body {
+    font-size: 17px;
+  }
+
+  #app {
+    padding: 32px 24px;
+  }
+}
